@@ -27,9 +27,6 @@ async function run() {
 
     let template = {}
 
-    template.dip_lucky = await dip_lucky(el, HEADERS)
-    console.log(template)
-    return
     console.log(`-------------------------------------🎁🎁开始啦🎁🎁-------------------------------------`)
     template.user_name = await user_name(el, HEADERS)
     template.check_in = await check_in(el, HEADERS)
