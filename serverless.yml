@@ -1,0 +1,22 @@
+component: scf # (必选) 组件名称，在该实例中为scf
+name: scfdemo # (必选) 组件实例名称。
+
+#组件参数配置
+inputs:
+  name: scf-${name} # 云函数名称，默认为 ${name}-${stage}-${app}
+  namespace: default
+  # 1. 默认写法，新建特定命名的 cos bucket 并上传
+  src: ./src
+  type: event # 函数类型，默认为 event(事件类型)，web(web类型)
+  handler: index.main_handler #入口（函数类型为事件类型时生效）
+  runtime: Nodejs10.15 # 运行环境 默认 Nodejs10.15
+  region: ap-guangzhou # 函数所在区域
+  description: This is a function in ${app} application.
+  memorySize: 128 # 内存大小，单位MB
+  timeout: 20 # 函数执行超时时间，单位秒
+  initTimeout: 3 # 初始化超时时间，单位秒
+  environment: #  环境变量
+    variables: #  环境变量对象
+      TEST1: value1
+      TEST2: value2
+  config: 1112312
