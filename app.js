@@ -19,21 +19,22 @@ async function run() {
     const el = configs[i];
 
     if (!el.cookie) { continue }
-
     const HEADERS = {
       'cookie': el.cookie,
       'user-agent': config.userAgent
     }
 
+    console.log(`-------------------------------------🎁🎁开始啦🎁🎁-------------------------------------`)
     let template = {}
 
-    console.log(`-------------------------------------🎁🎁开始啦🎁🎁-------------------------------------`)
     template.user_name = await user_name(el, HEADERS)
     template.check_in = await check_in(el, HEADERS)
     await random_sleep(wait_s, wait_d)
     template.draw = await draw(el, HEADERS)
     await random_sleep(wait_s, wait_d)
-    template.dip_lucky = await dip_lucky(el, HEADERS)
+    //沾喜气之前获取被沾人的Id
+    let param = { lottery_history_id: await global_big(el, HEADERS) }
+    template.dip_lucky = await dip_lucky(el, HEADERS, param)
     await random_sleep(wait_s, wait_d)
     template.cur_point = await get_cur_point(el, HEADERS)
 
@@ -84,18 +85,22 @@ async function draw(info, headers) {
 }
 
 //沾喜气
-async function dip_lucky(info, headers, retry = 0) {
+async function dip_lucky(info, headers, param, retry = 0) {
+  headers['Content-Type'] = 'application/json'
+
   const res = await got.post(`https://api.juejin.cn/growth_api/v1/lottery_lucky/dip_lucky?aid=${info.aid}&uuid=${info.uuid}`, {
-    headers: headers
+    headers: headers,
+    body: `{"lottery_history_id":"${param.lottery_history_id}"}`
   }).json()
 
-  if (retry < 5 && !res.data.has_dip) {
+  console.log(`沾喜气：${JSON.stringify(res)}`)
+
+  if (retry < 5 && res.erro_no && !res.data?.has_dip && !res.data?.dip_value) {
     console.log(`沾喜气第${retry}请求结果：${JSON.stringify(res)}`)
     await random_sleep(1000, 2000)
-    return await dip_lucky(info, headers, ++retry)
+    return await dip_lucky(info, headers, param, ++retry)
   }
 
-  console.log(`沾喜气：${JSON.stringify(res)}`)
   return await machiningRes(res, () => {
     return `${(res.data.has_dip ? '已经沾过喜气了' : `沾到${res.data.dip_value}个喜气`)}，当前喜气值：${res.data.total_value}`
   })
@@ -131,7 +136,22 @@ async function user_name(info, headers) {
   return await machiningRes(res, async () => {
     return res?.data.user_name
   })
+}
 
+//围观大奖
+async function global_big(info, headers) {
+  const res = await got.post(`https://api.juejin.cn/growth_api/v1/lottery_history/global_big?aid=${info.aid}&uuid=${info.uuid}`, {
+    headers: headers,
+    body: `{"page_no":1,"page_size":5}`
+  }).json()
+
+  console.log(`围观大奖：${JSON.stringify(res)}`)
+  return await machiningRes(res, () => {
+    if (res?.data?.lotteries?.length > 0) {
+      return `${res.data.lotteries[0].history_id}`
+    }
+    return '7069424055543136264'//防止获取失败写死一个
+  })
 }
 
 async function machiningRes(res, action) {
