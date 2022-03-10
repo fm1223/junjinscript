@@ -1,5 +1,9 @@
 async function getConfigs(config) {
     let configs = []
+    console.log(typeof config)
+    if (typeof config === 'string') {
+        config = JSON.parse(config)
+    }
 
     let cookies = config?.cookie.split('\n')
 

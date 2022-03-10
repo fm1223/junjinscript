@@ -9,7 +9,7 @@ const sleep = (n) => new Promise(resolve => setTimeout(() => resolve(), n))
 
 let wait_s = 5000, wait_d = 10000
 
-run()
+// run()
 
 async function run() {
   const configs = await tools.getConfigs(config.config)
